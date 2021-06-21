@@ -46,9 +46,15 @@ if __name__ == '__main__':
   )
   optional.add_argument(
     '-d',
-    '--timestamp',
+    '--show-timestamp',
     action='store_true',
     help='add a timestamp to log messages.'
+  )
+  optional.add_argument(
+    '-l',
+    '--show-log-level',
+    action='store_true',
+    help='add [INFO] to stdout messages and [ERROR] for stderr.'
   )
   optional.add_argument(
     '-c', 
@@ -58,7 +64,7 @@ if __name__ == '__main__':
   )
   optional.add_argument(
     '-t', 
-    '--tmp', 
+    '--write-tmp', 
     action='store_true', 
     help='also write logs to "/tmp/<service>.log".'
   )
@@ -68,9 +74,10 @@ if __name__ == '__main__':
   base_log_path = args.path or DEFAULT_BASE_LOG_PATH.format(service)
   max_file_size = args.max_file_size or DEFAULT_MAX_FILE_SIZE
   max_file_count = args.max_file_size or DEFAULT_MAX_FILE_COUNT
-  with_timestamp = args.timestamp
+  show_timestamp = args.show_timestamp
+  show_log_level = args.show_log_level
   write_stdout = not args.no_console
-  write_tmp = args.tmp
+  write_tmp = args.write_tmp
 
   if not os.path.exists(base_log_path):
     os.mkdir(base_log_path)
@@ -93,9 +100,11 @@ if __name__ == '__main__':
   if write_stdout:
     handlers.append(logging.StreamHandler())
 
-  log_format = u'[%(levelname)5s] %(message)s'
-  if with_timestamp:
-    log_format = u'[%(asctime)s.%(msecs)03d] [%(levelname)-5s] %(message)s'
+  log_format = u'%(message)s'
+  if show_log_level:
+    log_format = u'[%(levelname)-5s] ' + log_format
+  if show_timestamp:
+    log_format = u'[%(asctime)s.%(msecs)03d] ' + log_format
 
   logging.basicConfig(
     handlers=handlers,
